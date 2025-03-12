@@ -2,19 +2,10 @@ const express = require("express");
 const router = express.Router({mergeParams: true});
 const wrapAsync = require("../utils/wrapAsync.js");
 const ExpressError = require("../utils/ExpressError.js");
-const{reviewSchema} = require("../schema.js");
 const Review = require("../models/review.js");
 const Listing = require('../models/listing.js');
-
-const validateReview = (req, res, next) => {
-  let {error} = reviewSchema.validate(req,body);
-  if(error) {
-    let errMsg = error.details.map((el) => el.message).join(",");
-    throw new ExpressError(400, result.errMsg);
-  }else{
-    next();
-  }
-};
+const{validateReview,isLoggedIn,isReviewAuthor} = require("../middleware.js");
+const { isExpression } = require("joi");
 
 //Post Review Route
 // router.post("/", validateReview,
@@ -30,7 +21,7 @@ const validateReview = (req, res, next) => {
 //     res.redirect(`/listings/${listing._id}`);
 // })
 // );
-router.post("/", async (req, res) => {
+router.post("/",isExpression,validateReview,wrapAsync(async (req, res) => {
   try {
       let listing = await Listing.findById(req.params.id);
       if (!listing) {
@@ -41,6 +32,7 @@ router.post("/", async (req, res) => {
           rating: req.body.review.rating,  // ✅ Extract from req.body
           comment: req.body.review.comment
       });
+      newReview.author = req.user._id;
 
       listing.reviews.push(newReview);
 
@@ -54,14 +46,13 @@ router.post("/", async (req, res) => {
       console.error("Error saving review:", err);
       res.status(500).send("Internal Server Error");
   }
-});
-
-
-
+}));
 
 //Delete Review Route
 router.delete(
   "/:reviewId",
+  isLoggedIn,
+  isReviewAuthor,
   wrapAsync(async (req, res) => {
     let {id, reviewId} = req.params;
 

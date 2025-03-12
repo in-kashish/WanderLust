@@ -10,7 +10,7 @@ router.get("/signup", (req, res) => {
     res.render("users/signup.ejs");
 });
 
-router.post("signup", 
+router.post("/signup", 
     wrapAsync(async(req, res) => {
     try{
         let {username, email, password} = req.body;
@@ -19,7 +19,7 @@ router.post("signup",
     console.log(registeredUser);
     req.login(registeredUser, (err) => {
         if(err) {
-            return nex(err);;
+            return next(err);
         }
         req.flash("success", "welcome to Wanderlust");
         res.redirect("/listings");
@@ -40,9 +40,9 @@ router.post("/login",saveRedirectUrl,
         failureFlash: true
     }), 
 async(req, res) => {
-res.flash("success","Welcome back to Wanderlust! You are logged in!");
-let redirecUrl = res.locals.redirecUrl || "/listings";
-res.redirect(redirecUrl);
+req.flash("success","Welcome back to Wanderlust! You are logged in!");
+let redirectUrl = res.locals.redirecUrl || "/listings";
+res.redirect(redirectUrl);
 });
 
 router.get("/logout", (req,res,next) => {

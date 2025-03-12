@@ -7,14 +7,15 @@ const Listing = require('../models/listing.js');
 const {isLoggedIn} = require("../middleware.js");
 
 const validateListing = (req, res, next) => {
-    let {error} = listingSchema.validate(req,body);
-    if(error) {
+  let { error } = listingSchema.validate(req.body); 
+  if (error) {
       let errMsg = error.details.map((el) => el.message).join(",");
-      throw new ExpressError(400, result.errMsg);
-    }else{
+      throw new ExpressError(400, errMsg); 
+  } else {
       next();
-    }
-  };
+  }
+};
+
   
 
 
@@ -38,11 +39,11 @@ router.get('/', wrapAsync(async (req, res) => {
   router.get("/:id", wrapAsync(async(req, res) => {
       let {id} = req.params;
       const listings = await Listing.findById(id).populate("reviews").populate("owner");
-      if(!listing){
+      if(!listings){
         req.flash("error", "Listing you requested for does not exist");
         res.redirect("/listings");
       }
-      console.log(listing);
+      console.log(listings);
       res.render("listings/show.ejs", {listings});
   }));
 
@@ -80,7 +81,7 @@ router.get('/', wrapAsync(async (req, res) => {
       let { id } = req.params;
       //Trim any extra spaces
       id = id.trim();
-      //Validate if `id` is a valid MongoDB ObjectId
+      //Validate if id is a valid MongoDB ObjectId
       if (!mongoose.Types.ObjectId.isValid(id)) {
         return res.status(400).json({ error: "Invalid Listing ID" });
       }
@@ -110,4 +111,4 @@ router.get('/', wrapAsync(async (req, res) => {
    res.redirect("/listings");
   }));
 
-  module.exports = router; 
+  module.exports = router;
